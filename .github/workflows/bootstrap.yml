@@ -129,7 +129,7 @@ jobs:
           -target=google_artifact_registry_repository.search_docker_repo \
           -target=google_secret_manager_secret.search_secrets \
           -target=google_secret_manager_secret_version.search_secret_versions \
-          -target=google_service_account.search_cloud_run_sa \
+          -target=data.google_service_account.search_cloud_run_sa \
           -target=data.google_service_account.search_github_actions_sa \
           -target=google_secret_manager_secret_iam_member.search_secret_access
 
