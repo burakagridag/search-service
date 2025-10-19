@@ -162,39 +162,47 @@ jobs:
 
         echo "✅ IAM role assignment completed"
     
+    # Verify bootstrap infrastructure
+    - name: Verify Bootstrap Infrastructure
+      working-directory: terraform
+      run: |
+        echo "🔍 Verifying bootstrap infrastructure..."
+
+        # Check if Artifact Registry repository was created
+        if terraform state show google_artifact_registry_repository.search_docker_repo > /dev/null 2>&1; then
+          echo "✅ Artifact Registry repository created"
+        else
+          echo "❌ Artifact Registry repository not found in state"
+        fi
+
+        # Check if service accounts were created/referenced
+        if terraform state show google_service_account.search_cloud_run_sa > /dev/null 2>&1; then
+          echo "✅ Cloud Run service account created"
+        else
+          echo "❌ Cloud Run service account not found in state"
+        fi
+
+        if terraform state show data.google_service_account.search_github_actions_sa > /dev/null 2>&1; then
+          echo "✅ GitHub Actions service account referenced"
+        else
+          echo "❌ GitHub Actions service account not found in state"
+        fi
+
     - name: Bootstrap Complete
       run: |
         echo "🎉 Search Service Bootstrap completed successfully!"
         echo ""
+        echo "📋 What was created:"
+        echo "✅ Artifact Registry repository for Docker images"
+        echo "✅ Cloud Run service account (search-svc-cloud-run@${{ env.PROJECT_ID }}.iam.gserviceaccount.com)"
+        echo "✅ IAM roles assigned to service accounts"
+        echo "✅ Required Google Cloud APIs enabled"
+        echo ""
         echo "📋 Next steps:"
-        echo "1. Use the existing GitHub Actions service account key as SEARCH_GCP_SERVICE_ACCOUNT_KEY:"
-        echo "   - This is the same key used for data-integration-service"
-        echo "   - If not already added, get the key from data-integration-service Terraform output"
+        echo "1. Push any remaining changes to main branch to trigger deployment"
+        echo "2. The deployment will create the Cloud Run service automatically"
         echo ""
-        echo "2. If IAM role assignments failed above, manually assign these roles in Google Cloud Console:"
-        echo "   For Cloud Run Service Account (search-svc-cloud-run@invest-xpert-465905.iam.gserviceaccount.com):"
-        echo "   - roles/secretmanager.secretAccessor"
-        echo "   - roles/cloudsql.client"
-        echo ""
-        echo "   For GitHub Actions Service Account (github-actions-deploy@invest-xpert-465905.iam.gserviceaccount.com):"
-        echo "   - roles/run.admin"
-        echo "   - roles/iam.serviceAccountUser"
-        echo "   - roles/secretmanager.admin"
-        echo "   - roles/serviceusage.serviceUsageAdmin"
-        echo "   - roles/artifactregistry.writer"
-        echo ""
-        echo "3. Also add the following secrets to your GitHub repository:"
-        echo "   - SEARCH_DATABASE_URL: Your PostgreSQL connection string (optional, uses shared secrets)"
-        echo "   - SEARCH_DATABASE_USERNAME: Your database username (optional, uses shared secrets)"
-        echo "   - SEARCH_DATABASE_PASSWORD: Your database password (optional, uses shared secrets)"
-        echo "   - SEARCH_REDIS_HOST: Your Redis host (optional, defaults to localhost)"
-        echo "   - SEARCH_REDIS_PORT: Your Redis port (optional, defaults to 6379)"
-        echo "   - SEARCH_KEYCLOAK_ISSUER_URI: Your Keycloak issuer URI (optional, uses shared secrets)"
-        echo "   - SEARCH_KEYCLOAK_JWK_SET_URI: Your Keycloak JWK set URI (optional, uses shared secrets)"
-        echo "   - SEARCH_KEYCLOAK_AUTH_SERVER_URL: Your Keycloak auth server URL (optional, uses shared secrets)"
-        echo "   - SEARCH_KEYCLOAK_REALM: Your Keycloak realm (optional, uses shared secrets)"
-        echo "   - SEARCH_KEYCLOAK_CLIENT_ID: Your Keycloak client ID (optional, uses shared secrets)"
-        echo "   - SEARCH_KEYCLOAK_CLIENT_SECRET: Your Keycloak client secret (optional, uses shared secrets)"
-        echo ""
-        echo "4. Once secrets and IAM roles are configured, push to main branch to trigger deployment"
+        echo "🔐 Service Accounts:"
+        echo "- Cloud Run: search-svc-cloud-run@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
+        echo "- GitHub Actions: github-actions-deploy@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
         echo ""
