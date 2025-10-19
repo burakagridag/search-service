@@ -1,0 +1,73 @@
+{
+  "info": {
+    "_postman_id": "d3d32e32-4f08-43b5-b17a-8c0a58b19412",
+    "name": "Search Service API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Companies",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8084/api/v1/search/companies?query=alp",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8084",
+          "path": [
+            "api",
+            "v1",
+            "search",
+            "companies"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "alp"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Post Companies",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"alp\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8084/api/v1/search/companies",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8084",
+          "path": [
+            "api",
+            "v1",
+            "search",
+            "companies"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

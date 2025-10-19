@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.investxpert.searchservice.SearchServiceApplicationTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-10-15T07:53:19.579Z" hostname="MacBookPro" time="0.511">
+  <properties/>
+  <testcase name="contextLoads()" classname="com.investxpert.searchservice.SearchServiceApplicationTests" time="0.511"/>
+  <system-out><![CDATA[Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+09:53:12.992 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.investxpert.searchservice.SearchServiceApplicationTests]: SearchServiceApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+09:53:13.163 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.investxpert.searchservice.SearchServiceApplication for test class com.investxpert.searchservice.SearchServiceApplicationTests
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.3)
+
+2025-10-15 09:53:13 - Starting SearchServiceApplicationTests using Java 17.0.9 with PID 48299 (started by burakagridag in /Users/burakagridag/Documents/projects/gcp_projects/investxpert/search-service)
+2025-10-15 09:53:13 - Running with Spring Boot v3.5.3, Spring v6.2.8
+2025-10-15 09:53:13 - The following 1 profile is active: "local"
+2025-10-15 09:53:14 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-15 09:53:14 - Finished Spring Data repository scanning in 174 ms. Found 1 JPA repository interface.
+2025-10-15 09:53:15 - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-15 09:53:15 - HHH000412: Hibernate ORM core version 6.6.18.Final
+2025-10-15 09:53:15 - HHH000026: Second-level cache disabled
+2025-10-15 09:53:15 - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-10-15 09:53:15 - HikariPool-1 - Starting...
+2025-10-15 09:53:16 - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@6315bb4
+2025-10-15 09:53:16 - HikariPool-1 - Start completed.
+2025-10-15 09:53:16 - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-10-15 09:53:16 - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 17.4
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-10-15 09:53:17 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-10-15 09:53:17 - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-15 09:53:17 - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-10-15 09:53:19 - Started SearchServiceApplicationTests in 6.236 seconds (process running for 7.786)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

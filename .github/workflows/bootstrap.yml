@@ -1,0 +1,200 @@
+name: Bootstrap Search Service Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_bootstrap:
+        description: 'Type "bootstrap" to confirm initial setup'
+        required: true
+        default: ''
+
+env:
+  PROJECT_ID: invest-xpert-465905
+  REGION: europe-west1
+  SERVICE_NAME: search-service
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm_bootstrap == 'bootstrap'
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Authenticate using service account key
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+
+    # Verify project access and set active project
+    - name: Verify Project Access
+      run: |
+        echo "🔍 Verifying project access..."
+        gcloud config set project ${{ env.PROJECT_ID }}
+        gcloud config list
+        echo "✅ Active project: $(gcloud config get-value project)"
+        
+        # Check if we have necessary permissions
+        echo "🔍 Checking permissions..."
+        gcloud projects describe ${{ env.PROJECT_ID }} || {
+          echo "❌ Cannot access project ${{ env.PROJECT_ID }}"
+          echo "Please ensure your service account has Project Viewer access"
+          exit 1
+        }
+
+    # Verify Terraform state bucket exists (created by data-integration-service bootstrap)
+    - name: Verify Terraform State Bucket
+      run: |
+        echo "🔍 Verifying Terraform state bucket..."
+        
+        if gsutil ls gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null; then
+          echo "✅ Terraform state bucket exists"
+        else
+          echo "❌ Terraform state bucket not found."
+          echo "Please run the bootstrap workflow for data-integration-service first."
+          exit 1
+        fi
+
+    # Enable required APIs first (before Terraform)
+    - name: Enable required Google Cloud APIs
+      run: |
+        echo "Enabling required APIs..."
+        gcloud services enable cloudresourcemanager.googleapis.com
+        gcloud services enable iam.googleapis.com
+        gcloud services enable serviceusage.googleapis.com
+        gcloud services enable cloudbuild.googleapis.com
+        gcloud services enable run.googleapis.com
+        gcloud services enable secretmanager.googleapis.com
+        gcloud services enable containerregistry.googleapis.com
+        gcloud services enable artifactregistry.googleapis.com
+        gcloud services enable compute.googleapis.com
+        echo "✅ APIs enabled successfully"
+        echo "⏳ Waiting for API propagation..."
+        sleep 30
+
+    # Setup Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.7
+
+    # Create temporary terraform.tfvars for bootstrap
+    - name: Create bootstrap tfvars
+      working-directory: terraform
+      run: |
+        cat > terraform.tfvars << EOF
+        project_id     = "${{ env.PROJECT_ID }}"
+        region         = "${{ env.REGION }}"
+        service_name   = "${{ env.SERVICE_NAME }}"
+        container_image = "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:bootstrap"
+        environment    = "dev"
+        
+        # Placeholder values for bootstrap
+        database_url               = "jdbc:postgresql://placeholder:5432/placeholder"
+        database_username          = "placeholder"
+        database_password          = "placeholder"
+        redis_host                = "localhost"
+        redis_port                = "6379"
+        keycloak_issuer_uri       = "http://placeholder/realms/placeholder"
+        keycloak_jwk_set_uri      = "http://placeholder/realms/placeholder/certs"
+        keycloak_auth_server_url  = "http://placeholder"
+        keycloak_realm            = "placeholder"
+        keycloak_client_id        = "placeholder"
+        keycloak_client_secret    = "placeholder"
+        EOF
+
+    # Initialize Terraform
+    - name: Terraform Init
+      working-directory: terraform
+      run: terraform init
+
+    # Apply only infrastructure components (excluding Cloud Run service)
+    - name: Bootstrap Infrastructure Components
+      working-directory: terraform
+      run: |
+        terraform apply -auto-approve \
+          -target=google_project_service.search_apis \
+          -target=google_artifact_registry_repository.search_docker_repo \
+          -target=google_secret_manager_secret.search_secrets \
+          -target=google_secret_manager_secret_version.search_secret_versions \
+          -target=google_service_account.search_cloud_run_sa \
+          -target=data.google_service_account.search_github_actions_sa \
+          -target=google_secret_manager_secret_iam_member.search_secret_access
+
+    # Note: Using existing shared GitHub Actions service account
+    # The service account key is already available from data-integration-service
+    
+    # Assign IAM roles manually
+    - name: Assign IAM Roles
+      run: |
+        echo "🔧 Assigning IAM roles to service accounts..."
+        
+        # Get service account emails from Terraform outputs
+        CLOUD_RUN_SA=$(terraform -chdir=terraform output -raw cloud_run_service_account_email)
+        GITHUB_ACTIONS_SA=$(terraform -chdir=terraform output -raw github_actions_service_account_email)
+        
+        echo "Cloud Run SA: $CLOUD_RUN_SA"
+        echo "GitHub Actions SA: $GITHUB_ACTIONS_SA"
+        
+        # Try to assign roles (may fail if permissions are insufficient)
+        echo "Attempting to assign Cloud Run service account roles..."
+        gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$CLOUD_RUN_SA" --role="roles/secretmanager.secretAccessor" || echo "⚠️ Failed to assign secretmanager.secretAccessor - assign manually"
+        gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$CLOUD_RUN_SA" --role="roles/cloudsql.client" || echo "⚠️ Failed to assign cloudsql.client - assign manually"
+        
+        echo "Attempting to assign GitHub Actions service account roles..."
+        gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/run.admin" || echo "⚠️ Failed to assign run.admin - assign manually"
+        gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/iam.serviceAccountUser" || echo "⚠️ Failed to assign iam.serviceAccountUser - assign manually"
+        gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/secretmanager.admin" || echo "⚠️ Failed to assign secretmanager.admin - assign manually"
+        gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/serviceusage.serviceUsageAdmin" || echo "⚠️ Failed to assign serviceusage.serviceUsageAdmin - assign manually"
+        gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/artifactregistry.writer" || echo "⚠️ Failed to assign artifactregistry.writer - assign manually"
+        
+        echo "✅ IAM role assignment completed"
+    
+    - name: Bootstrap Complete
+      run: |
+        echo "🎉 Search Service Bootstrap completed successfully!"
+        echo ""
+        echo "📋 Next steps:"
+        echo "1. Use the existing GitHub Actions service account key as SEARCH_GCP_SERVICE_ACCOUNT_KEY:"
+        echo "   - This is the same key used for data-integration-service"
+        echo "   - If not already added, get the key from data-integration-service Terraform output"
+        echo ""
+        echo "2. If IAM role assignments failed above, manually assign these roles in Google Cloud Console:"
+        echo "   For Cloud Run Service Account (search-svc-cloud-run@invest-xpert-465905.iam.gserviceaccount.com):"
+        echo "   - roles/secretmanager.secretAccessor"
+        echo "   - roles/cloudsql.client"
+        echo ""
+        echo "   For GitHub Actions Service Account (github-actions-deploy@invest-xpert-465905.iam.gserviceaccount.com):"
+        echo "   - roles/run.admin"
+        echo "   - roles/iam.serviceAccountUser"
+        echo "   - roles/secretmanager.admin"
+        echo "   - roles/serviceusage.serviceUsageAdmin"
+        echo "   - roles/artifactregistry.writer"
+        echo ""
+        echo "3. Also add the following secrets to your GitHub repository:"
+        echo "   - SEARCH_DATABASE_URL: Your PostgreSQL connection string (optional, uses shared secrets)"
+        echo "   - SEARCH_DATABASE_USERNAME: Your database username (optional, uses shared secrets)"
+        echo "   - SEARCH_DATABASE_PASSWORD: Your database password (optional, uses shared secrets)"
+        echo "   - SEARCH_REDIS_HOST: Your Redis host (optional, defaults to localhost)"
+        echo "   - SEARCH_REDIS_PORT: Your Redis port (optional, defaults to 6379)"
+        echo "   - SEARCH_KEYCLOAK_ISSUER_URI: Your Keycloak issuer URI (optional, uses shared secrets)"
+        echo "   - SEARCH_KEYCLOAK_JWK_SET_URI: Your Keycloak JWK set URI (optional, uses shared secrets)"
+        echo "   - SEARCH_KEYCLOAK_AUTH_SERVER_URL: Your Keycloak auth server URL (optional, uses shared secrets)"
+        echo "   - SEARCH_KEYCLOAK_REALM: Your Keycloak realm (optional, uses shared secrets)"
+        echo "   - SEARCH_KEYCLOAK_CLIENT_ID: Your Keycloak client ID (optional, uses shared secrets)"
+        echo "   - SEARCH_KEYCLOAK_CLIENT_SECRET: Your Keycloak client secret (optional, uses shared secrets)"
+        echo ""
+        echo "4. Once secrets and IAM roles are configured, push to main branch to trigger deployment"
+        echo ""

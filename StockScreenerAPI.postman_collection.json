@@ -1,0 +1,367 @@
+{
+  "info": {
+    "_postman_id": "stock-screener-api-12345",
+    "name": "Stock Screener API",
+    "description": "Complete API collection for Stock Screener functionality in Search Service with filtering, sorting, and pagination capabilities",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8084",
+      "type": "string",
+      "description": "Base URL for Search Service"
+    }
+  ],
+  "item": [
+    {
+      "name": "📊 Stock Screener Endpoints",
+      "item": [
+        {
+          "name": "Get Filter Options",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter-options",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter-options"]
+            },
+            "description": "Returns all available filter options including industries, countries, sectors, exchanges, currencies and range values for market cap, price, and beta."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/search/stocks/filter-options",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "search", "stocks", "filter-options"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"industries\": [\"Auto - Manufacturers\", \"Banks - Regional\", \"Consumer Electronics\", \"Software - Infrastructure\"],\n  \"countries\": [\"DE\", \"TR\", \"US\"],\n  \"sectors\": [\"Basic Materials\", \"Technology\", \"Financial Services\"],\n  \"exchanges\": [\"NASDAQ Global Select\", \"New York Stock Exchange\"],\n  \"currencies\": [\"EUR\", \"TRY\", \"USD\"],\n  \"rangeOptions\": {\n    \"marketCap\": {\"min\": 1000000, \"max\": 3000000000000},\n    \"price\": {\"min\": 0.01, \"max\": 500.00},\n    \"beta\": {\"min\": -2.5, \"max\": 5.0}\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Filter Stocks - All Results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 0,\n  \"size\": 10,\n  \"sortBy\": \"market_cap\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Returns all stocks without any filters, sorted by market cap descending."
+          }
+        },
+        {
+          "name": "Filter Stocks - US Technology",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"countries\": [\"US\"],\n  \"sectors\": [\"Technology\"],\n  \"sortBy\": \"market_cap\",\n  \"sortOrder\": \"desc\",\n  \"page\": 0,\n  \"size\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Filter for US Technology stocks sorted by market cap."
+          }
+        },
+        {
+          "name": "Filter Stocks - Market Cap Range",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minMarketCap\": 1000000000,\n  \"maxMarketCap\": 100000000000,\n  \"sortBy\": \"market_cap\",\n  \"sortOrder\": \"desc\",\n  \"page\": 0,\n  \"size\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Filter stocks with market cap between 1B and 100B."
+          }
+        },
+        {
+          "name": "Filter Stocks - Price Range",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minPrice\": 10.00,\n  \"maxPrice\": 500.00,\n  \"sortBy\": \"price\",\n  \"sortOrder\": \"asc\",\n  \"page\": 0,\n  \"size\": 15\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Filter stocks with price between $10 and $500, sorted by price ascending."
+          }
+        },
+        {
+          "name": "Filter Stocks - Multiple Industries",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"industries\": [\"Consumer Electronics\", \"Software - Infrastructure\"],\n  \"countries\": [\"US\"],\n  \"sortBy\": \"company_name\",\n  \"sortOrder\": \"asc\",\n  \"page\": 0,\n  \"size\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Filter for multiple industries in US, sorted alphabetically by company name."
+          }
+        },
+        {
+          "name": "Filter Stocks - Beta Range",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minBeta\": 0.5,\n  \"maxBeta\": 1.5,\n  \"countries\": [\"US\"],\n  \"sortBy\": \"beta\",\n  \"sortOrder\": \"asc\",\n  \"page\": 0,\n  \"size\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Filter stocks with beta between 0.5 and 1.5 (moderate volatility)."
+          }
+        },
+        {
+          "name": "Filter Stocks - ETF Only",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isEtf\": true,\n  \"sortBy\": \"market_cap\",\n  \"sortOrder\": \"desc\",\n  \"page\": 0,\n  \"size\": 20\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Filter for ETFs only, sorted by market cap."
+          }
+        },
+        {
+          "name": "Filter Stocks - Actively Trading",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActivelyTrading\": true,\n  \"countries\": [\"US\", \"DE\"],\n  \"currencies\": [\"USD\", \"EUR\"],\n  \"sortBy\": \"changes\",\n  \"sortOrder\": \"desc\",\n  \"page\": 0,\n  \"size\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Filter for actively trading stocks in US and Germany, sorted by daily changes."
+          }
+        },
+        {
+          "name": "Filter Stocks - Complex Filter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"industries\": [\"Software - Infrastructure\", \"Consumer Electronics\"],\n  \"countries\": [\"US\"],\n  \"sectors\": [\"Technology\"],\n  \"exchanges\": [\"NASDAQ\", \"NYSE\"],\n  \"currencies\": [\"USD\"],\n  \"minMarketCap\": 5000000000,\n  \"maxMarketCap\": 500000000000,\n  \"minPrice\": 50.00,\n  \"maxPrice\": 300.00,\n  \"minBeta\": 0.8,\n  \"maxBeta\": 1.5,\n  \"isEtf\": false,\n  \"isActivelyTrading\": true,\n  \"isFund\": false,\n  \"sortBy\": \"market_cap\",\n  \"sortOrder\": \"desc\",\n  \"page\": 0,\n  \"size\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/stocks/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "stocks", "filter"]
+            },
+            "description": "Complex filter combining multiple criteria for large-cap US technology stocks."
+          }
+        }
+      ],
+      "description": "Stock screening endpoints with various filtering and sorting options"
+    },
+    {
+      "name": "🔍 Legacy Search Endpoints",
+      "item": [
+        {
+          "name": "Search Companies - GET",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/companies?query=apple",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "companies"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "apple",
+                  "description": "Search term for company name or symbol"
+                }
+              ]
+            },
+            "description": "Search for companies by name or symbol using GET method."
+          }
+        },
+        {
+          "name": "Search Companies - POST",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"microsoft\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/companies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "companies"]
+            },
+            "description": "Search for companies by name or symbol using POST method."
+          }
+        },
+        {
+          "name": "Get Company by Symbol and Exchange",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/company/AAPL/NASDAQ",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "search", "company", "AAPL", "NASDAQ"]
+            },
+            "description": "Get specific company information by symbol and exchange."
+          }
+        }
+      ],
+      "description": "Legacy company search endpoints for backward compatibility"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script to set dynamic variables if needed",
+          "pm.globals.set('timestamp', Date.now());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Status code is 200', function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test('Response time is less than 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "pm.test('Content-Type is application/json', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});"
+        ]
+      }
+    }
+  ]
+}

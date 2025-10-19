@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: search-service
+  profiles:
+    active: local
+  datasource:
+    url: jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:5432/stockmarket?currentSchema=stockmarket_fmp&sslmode=require
+    username: postgres.himndihwewpcruwpczgb
+    password: agridag7823493!
+    hikari:
+      jdbc-url: jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:5432/stockmarket?currentSchema=stockmarket_fmp&sslmode=require
+      username: postgres.himndihwewpcruwpczgb
+      password: agridag7823493!
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  cache:
+    type: simple
+
+server:
+  port: 8084
+
+opensearch:
+  url: http://localhost:9200
+  username: ""
+  password: ""
+  connection-timeout: 5000
+  socket-timeout: 30000
+  max-retry-timeout: 30000
+  max-connections: 100
+  max-connections-per-route: 100
+
+logging:
+  level:
+    com.investxpert: DEBUG
+    org.opensearch: INFO
+    org.springframework.batch: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/search-service.log
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+opensearch:
+  url: http://localhost:9200
+  username: ""
+  password: ""
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  
+opensearch:
+  url: http://opensearch:9200
+  username: ""
+  password: ""
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  
+opensearch:
+  url: ${OPENSEARCH_URL:http://localhost:9200}
+  username: ${OPENSEARCH_USERNAME:""}
+  password: ${OPENSEARCH_PASSWORD:""}
