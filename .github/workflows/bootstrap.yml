@@ -136,30 +136,30 @@ jobs:
     # Note: Using existing shared GitHub Actions service account
     # The service account key is already available from data-integration-service
     
-    # Assign IAM roles manually
+    # Assign IAM roles manually using hardcoded service account emails
     - name: Assign IAM Roles
       run: |
         echo "🔧 Assigning IAM roles to service accounts..."
-        
-        # Get service account emails from Terraform outputs
-        CLOUD_RUN_SA=$(terraform -chdir=terraform output -raw cloud_run_service_account_email)
-        GITHUB_ACTIONS_SA=$(terraform -chdir=terraform output -raw github_actions_service_account_email)
-        
+
+        # Use hardcoded service account emails
+        CLOUD_RUN_SA="search-svc-cloud-run@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
+        GITHUB_ACTIONS_SA="github-actions-deploy@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
+
         echo "Cloud Run SA: $CLOUD_RUN_SA"
         echo "GitHub Actions SA: $GITHUB_ACTIONS_SA"
-        
+
         # Try to assign roles (may fail if permissions are insufficient)
         echo "Attempting to assign Cloud Run service account roles..."
         gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$CLOUD_RUN_SA" --role="roles/secretmanager.secretAccessor" || echo "⚠️ Failed to assign secretmanager.secretAccessor - assign manually"
         gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$CLOUD_RUN_SA" --role="roles/cloudsql.client" || echo "⚠️ Failed to assign cloudsql.client - assign manually"
-        
+
         echo "Attempting to assign GitHub Actions service account roles..."
         gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/run.admin" || echo "⚠️ Failed to assign run.admin - assign manually"
         gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/iam.serviceAccountUser" || echo "⚠️ Failed to assign iam.serviceAccountUser - assign manually"
         gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/secretmanager.admin" || echo "⚠️ Failed to assign secretmanager.admin - assign manually"
         gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/serviceusage.serviceUsageAdmin" || echo "⚠️ Failed to assign serviceusage.serviceUsageAdmin - assign manually"
         gcloud projects add-iam-policy-binding ${{ env.PROJECT_ID }} --member="serviceAccount:$GITHUB_ACTIONS_SA" --role="roles/artifactregistry.writer" || echo "⚠️ Failed to assign artifactregistry.writer - assign manually"
-        
+
         echo "✅ IAM role assignment completed"
     
     - name: Bootstrap Complete
