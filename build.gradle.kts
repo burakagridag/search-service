@@ -21,6 +21,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.opensearch.client:opensearch-rest-client:2.3.0")
     implementation("org.opensearch.client:opensearch-java:2.3.0")
     implementation("org.apache.commons:commons-lang3:3.12.0")

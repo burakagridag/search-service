@@ -26,6 +26,16 @@ spring:
 server:
   port: 8084
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /api/actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+
 opensearch:
   url: http://localhost:9200
   username: ""
